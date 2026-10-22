@@ -1,0 +1,17 @@
+/* Section-specific colour and form refinements */
+.produce {
+    color: var(--ink);
+}
+
+.contact .contact-form input:focus-visible {
+    outline-offset: 6px;
+}
+
+.contact-form input::placeholder {
+    color: color-mix(in srgb, var(--ink) 65%, transparent);
+}
+
+.contact-form button {
+    background: var(--ink);
+    color: var(--lime);
+}

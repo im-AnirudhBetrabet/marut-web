@@ -1,0 +1,7 @@
+import React from 'react';
+const items = [
+ {name:'Leafy greens',desc:'Fresh · Crisp · Everyday',alt:'Fresh green lettuce leaves',src:'https://images.unsplash.com/photo-1576045057995-568f588f82fb?auto=format&fit=crop&w=1000&q=85'},
+ {name:'Salad favourites',desc:'Bright · Balanced · Versatile',alt:'A bowl of fresh salad greens',src:'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1000&q=85'},
+ {name:'More to come',desc:'Season-led · Thoughtful',alt:'Fresh vegetables harvested for the kitchen',src:'https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=1000&q=85'}
+];
+export default function Produce(){return <section className="section produce" id="produce"><div className="section-head"><span className="section-label">The good stuff</span><span className="section-index">03 / WHAT WE GROW</span></div><div className="produce-heading"><h2>Meet your<br/>new greens<span className="outline">.</span></h2><p>Fresh, vibrant produce is just the beginning. Here’s a taste of what we’re working towards.</p></div><div className="produce-track">{items.map((item,i)=><article className="produce-card" key={item.name}><div className="produce-image"><span className="card-index">0{i+1}</span><img src={item.src} alt={item.alt} width="1000" height="1200" loading="lazy"/></div><div className="produce-info"><div><h3>{item.name}</h3><p>{item.desc}</p></div><span className="plus" aria-hidden="true">↗</span></div></article>)}</div></section>}

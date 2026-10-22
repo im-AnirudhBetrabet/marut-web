@@ -1,0 +1,2 @@
+import React from 'react';
+export default function FarmStory(){return <section className="split-image" aria-label="MARUT growing philosophy"><div className="split-image-inner"><img src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?auto=format&fit=crop&w=2000&q=85" alt="Rows of green crops growing on a farm" width="2000" height="1300" loading="lazy"/><div className="split-overlay"/><div className="round-label">A better<br/>way to grow<br/>↘ Bengaluru</div><div className="split-quote">The future of food<br/>should feel <em>fresh.</em></div></div></section>}
