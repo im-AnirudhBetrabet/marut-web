@@ -94,7 +94,7 @@ body[data-theme="original"] .hero-photo {
   justify-content: center;
   width: 170px;
   height: 94px;
-  background: var(--ink);
+  /* background: var(--ink); */
   border-radius: 8px;
   padding: 5px 10px;
   overflow: hidden;

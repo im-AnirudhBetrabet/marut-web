@@ -3,7 +3,7 @@ export default function Footer() {
   return (
     <footer>
       <a className="footer-logo-image" href="#top" aria-label="MARUT home">
-        <img src="/images/marut-logo.png" alt="MARUT logo" width="170" height="94" loading="lazy" />
+        <img src="/images/marut-logo-dark.png" alt="MARUT logo" width="170" height="94" loading="lazy" />
       </a>
       <div className="footer-note">
         Nature, engineered.<br/>Made with intention in Bengaluru, India.
