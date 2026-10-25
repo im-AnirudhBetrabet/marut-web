@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-
+import { useState } from 'react';
+import React from 'react';
 async function submitInterest(email) {
   // Intentionally local-only until a real backend/email provider is configured.
   return { accepted: false, email };
