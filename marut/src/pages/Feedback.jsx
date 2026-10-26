@@ -2,6 +2,9 @@
 import { useMemo, useState } from 'react';
 import '../styles/feedback.css';
 import React from 'react';
+import { supabase } from '../lib/supabase.js';
+
+
 const PHONE = import.meta.env.VITE_FEEDBACK_NUMBER;
 
 const VARIETIES = [
@@ -97,18 +100,20 @@ function ChoiceGroup({ name, options, value, onChange }) {
 }
 
 export default function Feedback() {
-  const [cafe, setCafe] = useState('');
-  const [who, setWho] = useState('');
-  const [phone, setPhone] = useState('');
-  const [notes, setNotes] = useState('');
-  const [kit, setKit] = useState(false);
+  const [cafe          , setCafe] = useState('');
+  const [who           , setWho] = useState('');
+  const [phone         , setPhone] = useState('');
+  const [notes         , setNotes] = useState('');
+  const [kit           , setKit] = useState(false);
   const [varietyRatings, setVarietyRatings] = useState({});
   const [qualityRatings, setQualityRatings] = useState({});
-  const [shelf, setShelf] = useState('');
-  const [use, setUse] = useState('');
-  const [qty, setQty] = useState('');
-  const [status, setStatus] = useState(null);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [shelf         , setShelf] = useState('');
+  const [use           , setUse] = useState('');
+  const [qty           , setQty] = useState('');
+  const [status        , setStatus] = useState(null);
+  const [previewOpen   , setPreviewOpen] = useState(false);
+  const [isSubmitting  , setIsSubmitting] = useState(false);
+
 
   const message = useMemo(() => {
     const lines = [
@@ -191,20 +196,83 @@ export default function Feedback() {
     return true;
   }
 
-  function sendWhatsApp() {
-    if (!validate()) return;
+  
+async function sendWhatsApp() {
+    if (isSubmitting || !validate()) return;
 
+    const phoneDigits = PHONE?.replace(/\D/g, '');
+
+    if (!phoneDigits || !/^\d{10,15}$/.test(phoneDigits)) {
+        setStatus({
+        tone: 'warn',
+        text: 'WhatsApp is not configured correctly. Please contact Marut directly.',
+        });
+        return;
+    }
+
+    // Open a window immediately so the browser is less likely to block it
+    // after the database request finishes.
+    const whatsappUrl =
+        `https://wa.me/${phoneDigits}?text=${encodeURIComponent(message)}`;
+
+    const whatsappWindow = window.open('about:blank', '_blank');
+
+    setIsSubmitting(true);
     setStatus({
-      tone: 'ok',
-      text: 'WhatsApp is opening with your message ready. Tap Send there to finish.',
+        tone: 'ok',
+        text: 'Saving your feedback…',
     });
 
-    window.open(
-      `https://wa.me/${PHONE}?text=${encodeURIComponent(message)}`,
-      '_blank',
-      'noopener,noreferrer'
-    );
-  }
+    try {
+        const feedback = {
+        cafe_name: cafe.trim(),
+        contact_name: who.trim() || null,
+        whatsapp_number: phone.trim(),
+
+        variety_ratings: varietyRatings,
+        quality_ratings: qualityRatings,
+
+        shelf_life: shelf || null,
+        menu_interest: use || null,
+        weekly_quantity: qty || null,
+
+        notes: notes.trim() || null,
+        wants_trial_kit: kit,
+        };
+
+        const { error } = await supabase
+        .from('customer_feedback')
+        .insert(feedback);
+
+        if (error) throw error;
+
+        setStatus({
+        tone: 'ok',
+        text: 'Feedback saved successfully. Opening WhatsApp…',
+        });
+
+        if (whatsappWindow && !whatsappWindow.closed) {
+        whatsappWindow.location.href = whatsappUrl;
+        } else {
+        // Fallback if the browser blocked the new window.
+        window.location.href = whatsappUrl;
+        }
+    } catch (error) {
+        if (whatsappWindow && !whatsappWindow.closed) {
+        whatsappWindow.close();
+        }
+
+        console.error('Failed to save MARUT feedback:', error);
+
+        setStatus({
+        tone: 'warn',
+        text: 'We could not save your feedback. Your answers are still here; please try again.',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
+    }
+
 
   async function copyMessage() {
     try {
@@ -399,23 +467,20 @@ export default function Feedback() {
 
           <section className="fb-send">
             <h2>Send your feedback</h2>
-
+            <p className="fb-disclaimer">
+                By submitting this feedback, you agree that MARUT may store and review
+                your responses to improve our products and service. We may also contact
+                you to discuss your feedback, understand your requirements, or explore
+                how we can work together.
+            </p>
             <button
-              className="fb-btn fb-primary"
-              type="button"
-              onClick={sendWhatsApp}
-            >
-              Send feedback on WhatsApp
+                className="fb-btn fb-primary"
+                type="button"
+                onClick={sendWhatsApp}
+                disabled={isSubmitting}
+                >
+                {isSubmitting ? 'Saving feedback…' : 'Send feedback'}
             </button>
-
-            <button
-              className="fb-btn fb-secondary"
-              type="button"
-              onClick={copyMessage}
-            >
-              Copy message instead
-            </button>
-
             <p
               className="fb-status"
               data-tone={status?.tone ?? 'ok'}

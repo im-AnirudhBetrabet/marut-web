@@ -455,6 +455,21 @@
   color: var(--ink);
 }
 
+.fb-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
+}
+
+.fb-disclaimer {
+  margin: 0 0 6px;
+  padding-left: 14px;
+  border-left: 2px solid var(--orange);
+  color: var(--ink);
+  opacity: 0.78;
+  font-size: 11px;
+  line-height: 1.8;
+}
 /* Responsive */
 
 @media (max-width: 760px) {
