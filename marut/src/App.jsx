@@ -1,3 +1,5 @@
+
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useTheme } from './hooks/useTheme';
 import Header from './components/Header';
 import Marquee from './components/Marquee';
@@ -13,12 +15,15 @@ import GrowingMethod from './sections/GrowingMethod';
 import FarmStory from './sections/FarmStory';
 import Partnerships from './sections/Partnerships';
 import Contact from './sections/Contact';
+import Feedback from './pages/Feedback';
+import React from 'react';
 import './styles/global.css';
 import './styles/components.css';
 import './styles/sections.css';
-import React from 'react';
-export default function App() {
+
+function HomePage() {
   const { theme, toggleTheme } = useTheme();
+
   return (
     <RevealOnScroll>
       <div id="page-top">
@@ -36,9 +41,19 @@ export default function App() {
           <Partnerships />
           <Contact />
           <MarutContact />
-          </main>
-          <Footer />
+        </main>
+        <Footer />
       </div>
     </RevealOnScroll>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/feedback" element={<Feedback />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
