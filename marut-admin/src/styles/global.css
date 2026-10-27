@@ -18,7 +18,8 @@ body {
     min-height: 100vh;
     background: radial-gradient(ellipse at 70% 0%, rgba(111, 127, 66, .12), transparent 35%), var(--bg);
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: "Manrope", sans-serif;
+    font-optical-sizing: auto;
     font-size: 14px;
     transition: background .3s, color .3s;
 }
