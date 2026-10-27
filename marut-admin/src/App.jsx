@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import {
   BrowserRouter,
@@ -12,64 +11,15 @@ import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import { supabase } from './lib/supabase';
-const SESSION_KEY = 'marut-admin-demo-session';
-const SESSION_DURATION = 8 * 60 * 60 * 1000;
-
-function getValidSession() {
-  try {
-    const session = sessionStorage.getItem(SESSION_KEY);
-
-    if (!session) return false;
-
-    const parsed = JSON.parse(session);
-
-    if (
-      !parsed.expiresAt ||
-      Date.now() >= parsed.expiresAt
-    ) {
-      sessionStorage.removeItem(SESSION_KEY);
-      return false;
-    }
-
-    return true;
-  } catch {
-    sessionStorage.removeItem(SESSION_KEY);
-    return false;
-  }
-}
 
 function App() {
-  const [authenticated, setAuthenticated] = useState(
-    getValidSession
-  );
-  const [session, setSession] = useState(null);
+  const [session    , setSession    ] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
 
-  useEffect(() => {
-      let mounted = true;
-
-      supabase.auth.getSession().then(({ data, error }) => {
-          if (!mounted) return;
-
-          setSession(error ? null : data.session);
-          setAuthLoading(false);
-      });
-
-      const {
-          data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, newSession) => {
-          setSession(newSession);
-          setAuthLoading(false);
-      });
-
-      return () => {
-          mounted = false;
-          subscription.unsubscribe();
-      };
-  }, []);
   const [theme, setTheme] = useState(() => {
     try {
       const saved = localStorage.getItem('marut-admin-theme');
+
       return saved === 'light' || saved === 'dark'
         ? saved
         : 'dark';
@@ -80,6 +30,52 @@ function App() {
 
   const location = useLocation();
 
+  // Supabase is the single source of truth for authentication.
+  useEffect(() => {
+    let mounted = true;
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (!mounted) return;
+
+      setSession(newSession);
+      setAuthLoading(false);
+    });
+
+    // Check for an existing Supabase session.
+    supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (!mounted) return;
+
+        if (error) {
+          console.error(
+            'Failed to retrieve session:',
+            error.message
+          );
+          setSession(null);
+        } else {
+          setSession(data.session);
+        }
+
+        setAuthLoading(false);
+      })
+      .catch((error) => {
+        if (!mounted) return;
+
+        console.error('Session check failed:', error);
+        setSession(null);
+        setAuthLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Persist the theme preference.
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
 
@@ -90,51 +86,46 @@ function App() {
     }
   }, [theme]);
 
-  // Recheck the demo session whenever the page becomes active.
-  useEffect(() => {
-    const checkSession = () => {
-      if (!getValidSession()) {
-        setAuthenticated(false);
-      }
-    };
+  // Refresh the session after a successful login if needed.
+  const handleSignIn = async () => {
+    const { data, error } = await supabase.auth.getSession();
 
-    window.addEventListener('focus', checkSession);
-    document.addEventListener('visibilitychange', checkSession);
-
-    return () => {
-      window.removeEventListener('focus', checkSession);
-      document.removeEventListener(
-        'visibilitychange',
-        checkSession
+    if (error) {
+      console.error(
+        'Failed to retrieve session after login:',
+        error.message
       );
-    };
-  }, []);
-
-  const signInDemo = () => {
-    try {
-      sessionStorage.setItem(
-        SESSION_KEY,
-        JSON.stringify({
-          expiresAt: Date.now() + SESSION_DURATION,
-        })
-      );
-
-      setAuthenticated(true);
-    } catch {
-      // Do not enter the dashboard if session storage fails.
-      setAuthenticated(false);
+      return;
     }
+
+    setSession(data.session);
   };
 
+  // Sign out of Supabase.
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
 
     if (error) {
-        console.error('Sign-out failed:', error.message);
+      console.error('Sign-out failed:', error.message);
+      return;
     }
+
+    // The auth state listener will set session to null.
+    setSession(null);
   };
 
-  // All unauthenticated routes return to the root login screen.
+  const authenticated = Boolean(session);
+
+  // Prevent the login screen from flashing while checking the session.
+  if (authLoading) {
+    return (
+      <div className="auth-loading">
+        <p>Loading MARUT workspace...</p>
+      </div>
+    );
+  }
+
+  // Protect all dashboard routes.
   if (!authenticated && location.pathname !== '/') {
     return <Navigate to="/" replace />;
   }
@@ -149,12 +140,13 @@ function App() {
               theme={theme}
               setTheme={setTheme}
               onSignOut={signOut}
+              user={session?.user}
             />
           ) : (
             <Login
               theme={theme}
               setTheme={setTheme}
-              onDemoSignIn={signInDemo}
+              onSignIn={handleSignIn}
             />
           )
         }

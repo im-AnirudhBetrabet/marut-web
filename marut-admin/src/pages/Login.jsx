@@ -12,10 +12,9 @@ import {
     ShieldCheck,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-export default function Login({ theme, setTheme, onDemoSignIn }) {
+export default function Login({ theme, setTheme, onSignIn }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [step, setStep] = useState('email');
