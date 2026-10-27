@@ -5,7 +5,7 @@ import React from 'react';
 import { supabase } from '../lib/supabase.js';
 
 
-const PHONE = import.meta.env.VITE_FEEDBACK_NUMBER;
+const PHONE = import.meta.env.VITE_WHATSAPP_NUMBER;
 
 const VARIETIES = [
   ['Red Radish', '#C8264A'],
@@ -503,7 +503,7 @@ async function sendWhatsApp() {
 
         <footer className="fb-footer">
           <p>
-            Questions? Call <strong>9008563202</strong> or write to{' '}
+            Questions? Call <strong>{PHONE.replace(/^91/, '')}</strong> or write to{' '}
             <strong>info@marut.co.in</strong>.
           </p>
           <p>Marut, microgreens grown in Bengaluru.</p>

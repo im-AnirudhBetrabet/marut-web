@@ -48,7 +48,12 @@ export default function Catalogue() {
 
     return () => {
       cancelled = true;
-      scriptNodes.forEach((script) => script.remove());
+
+      window.__MARUT_CATALOGUE_CLEANUP__?.();
+      window.__MARUT_PARALLAX_CLEANUP__?.();
+
+      scriptNodes.forEach(script => script.remove());
+
       delete window.MARUT_PRODUCTS;
     };
   }, []);

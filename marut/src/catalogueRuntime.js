@@ -1,1 +1,906 @@
-export const catalogueRuntime = ["\n    (() => {\n      const section = document.getElementById('catalogue');\n      if (!section) return;\n      const grid = section.querySelector('.catalogue-grid');\n      const filterContainer = document.getElementById('catalogue-filters');\n\n      // Catalogue content lives here. To add a variety, add one object and supply its imagery/copy.\n      const products = window.MARUT_PRODUCTS;;\n      const activeProducts = products.filter(product => product.available !== false);\n      const escapeHtml = value => String(value).replace(/[&<>\"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' }[char]));\n      const packButtons = sizes => sizes.map((size, index) => `<button type=\"button\" class=\"pack-size-option${index === 0 ? ' is-selected' : ''}\" data-pack-size=\"${escapeHtml(size)}\" aria-pressed=\"${index === 0 ? 'true' : 'false'}\">${escapeHtml(size)}</button>`).join('');\n      grid.innerHTML = activeProducts.map((product, index) => `<article class=\"catalogue-card reveal\" data-category=\"${escapeHtml(product.category)}\" data-product=\"${escapeHtml(product.name)}\" data-product-id=\"${escapeHtml(product.id)}\" data-pack=\"Pack sizes: ${escapeHtml(product.packSizes.join(', '))}\" data-selected-pack=\"${escapeHtml(product.packSizes[0] || '50 g')}\" data-price=\"${escapeHtml(product.price || 'On enquiry')}\">\n        <div class=\"catalogue-image\"><img loading=\"lazy\" src=\"${escapeHtml(product.cardImage)}\" alt=\"${escapeHtml(product.name)} microgreens\"><span class=\"catalogue-number\">${String(index + 1).padStart(2, '0')} / ${escapeHtml(product.name.toUpperCase())}</span><span class=\"catalogue-tag\">${escapeHtml(product.tag)}</span></div>\n        <div class=\"catalogue-card-body\"><div class=\"catalogue-card-top\"><h3>${escapeHtml(product.name)}</h3></div><p class=\"catalogue-desc\">${escapeHtml(product.description)}</p>\n          <div class=\"pack-size-picker\" role=\"group\" aria-label=\"Choose pack size\"><span class=\"pack-size-label\">PACK SIZE</span><div class=\"pack-size-options\">${packButtons(product.packSizes)}</div></div>\n          <button class=\"catalogue-view-note\" type=\"button\" data-view-note>Explore field notes <span>↗</span></button>\n          <div class=\"catalogue-card-foot\"><div class=\"catalogue-price-wrap\"><span class=\"catalogue-price-label\">Pack sizes</span><span class=\"catalogue-price\">${escapeHtml(product.packSizes.join(' · '))}</span></div><div class=\"catalogue-card-actions\"><button class=\"catalogue-enquire\" type=\"button\" data-enquire=\"${escapeHtml(product.name)}\">Ask about it ↗</button><button class=\"catalogue-order-whatsapp\" type=\"button\" data-whatsapp-order=\"${escapeHtml(product.name)}\">Order on WhatsApp ↗</button></div></div>\n        </div></article>`).join('');\n      const cards = [...section.querySelectorAll('.catalogue-card')];\n      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {\n        cards.forEach(card => card.classList.add('is-visible'));\n      } else {\n        const catalogueCardObserver = new IntersectionObserver(entries => {\n          entries.forEach(entry => {\n            if (entry.isIntersecting) {\n              entry.target.classList.add('is-visible');\n              catalogueCardObserver.unobserve(entry.target);\n            }\n          });\n        }, { threshold: 0.12, rootMargin: '0px 0px -3% 0px' });\n        cards.forEach(card => catalogueCardObserver.observe(card));\n      }\n      const categoryOptions = [...new Map(activeProducts.map(product => [product.category, { value: product.category, label: product.categoryLabel || product.category }])).values()];\n      filterContainer.innerHTML = `<button class=\"catalogue-filter\" type=\"button\" data-filter=\"all\" aria-pressed=\"true\">All microgreens</button>` + categoryOptions.map(category => `<button class=\"catalogue-filter\" type=\"button\" data-filter=\"${escapeHtml(category.value)}\" aria-pressed=\"false\">${escapeHtml(category.label)}</button>`).join('');\n      const filterButtons = [...section.querySelectorAll('[data-filter]')];\n      const audienceButtons = [...section.querySelectorAll('[data-audience]')];\n      const count = document.getElementById('catalogue-count');\n      const viewLabel = document.getElementById('catalogue-view-label');\n      const formWrap = document.getElementById('catalogue-enquiry');\n      let activeFilter = 'all';\n      let audience = 'home';\n      document.getElementById('catalogue-count').textContent = String(activeProducts.length).padStart(2, '0') + ' varieties';\n      document.getElementById('spotlight-index').textContent = `01 / ${String(activeProducts.length).padStart(2, '0')}`;\n\n      const spotlight = Object.fromEntries(activeProducts.map((product, index) => [product.name, {\n        image: product.image, alt: `${product.name} microgreens`, category: product.spotlightCategory || product.categoryLabel.toUpperCase(), pack: 'AVAILABLE PACK SIZES', index: `${String(index + 1).padStart(2, '0')} / ${String(activeProducts.length).padStart(2, '0')}`, title: `${escapeHtml(product.name)} <em>.</em>`, description: product.spotlightDescription || product.description, taste: product.taste || '', uses: product.uses || ''\n      }]));\n\n      // Click/tap a product to focus it. Clicking elsewhere clears focus;\n      // selecting another card transfers focus to that card.\n      function setActiveCard(card) {\n        cards.forEach(item => {\n          const active = Boolean(card && item === card);\n          item.classList.toggle('is-active-card', active);\n          item.setAttribute('aria-pressed', active ? 'true' : 'false');\n        });\n        if (grid) grid.classList.toggle('has-active-card', Boolean(card));\n      }\n\n      cards.forEach(card => {\n        card.setAttribute('tabindex', '0');\n        card.setAttribute('role', 'button');\n        card.setAttribute('aria-pressed', 'false');\n        card.addEventListener('click', event => {\n          if (event.target.closest('button, a, input, select, textarea, label')) return;\n          setActiveCard(card);\n        });\n        card.addEventListener('keydown', event => {\n          if (event.target !== card) return;\n          if (event.key === 'Enter' || event.key === ' ') {\n            event.preventDefault();\n            setActiveCard(card);\n          }\n          if (event.key === 'Escape') setActiveCard(null);\n        });\n      });\n\n      // Any click outside a catalogue card restores the full catalogue.\n      // Clicks on another card are handled by that card's own listener above.\n      document.addEventListener('click', event => {\n        if (!event.target.closest('.catalogue-card')) setActiveCard(null);\n      });\n\n      document.addEventListener('keydown', event => {\n        if (event.key === 'Escape') setActiveCard(null);\n      });\n\n      function showFieldNotes(card) {\n        const name = card.dataset.product;\n        const data = spotlight[name];\n        if (!data) return;\n        syncPackButtons(card, card.dataset.selectedPack || '50 g');\n        const product = activeProducts.find(item => item.name === name);\n        const spotlightOptions = document.getElementById('spotlight-pack-options');\n        if (product && spotlightOptions) {\n          spotlightOptions.innerHTML = packButtons(product.packSizes).replace(/data-pack-size=/g, 'data-spotlight-pack=');\n          const selectedPack = card.dataset.selectedPack || product.packSizes[0];\n          spotlightOptions.querySelectorAll('[data-spotlight-pack]').forEach(button => {\n            const selected = button.dataset.spotlightPack === selectedPack;\n            button.classList.toggle('is-selected', selected);\n            button.setAttribute('aria-pressed', String(selected));\n          });\n        }\n        cards.forEach(item => item.classList.toggle('is-featured', item === card));\n        const image = document.getElementById('spotlight-image');\n        image.style.opacity = '0.25';\n        window.setTimeout(() => {\n          image.src = data.image;\n          image.alt = data.alt;\n          image.onload = () => { image.style.opacity = '1'; };\n          if (image.complete) image.style.opacity = '1';\n        }, 100);\n        document.getElementById('spotlight-category').textContent = data.category;\n        document.getElementById('spotlight-pack').textContent = data.pack;\n        document.getElementById('spotlight-index').textContent = data.index;\n        document.getElementById('spotlight-title').innerHTML = data.title;\n        document.getElementById('spotlight-description').textContent = data.description;\n        document.getElementById('spotlight-taste').textContent = data.taste;\n        document.getElementById('spotlight-uses').textContent = data.uses;\n        const price = audience === 'business' ? 'On enquiry' : (card.dataset.price || 'On enquiry');\n        document.getElementById('spotlight-price').textContent = price;\n        document.getElementById('spotlight-price-label').textContent = audience === 'business' ? 'BULK / RECURRING SUPPLY' : 'PRICING ON ENQUIRY';\n        const cta = document.getElementById('spotlight-enquire');\n        cta.dataset.enquire = name;\n        cta.innerHTML = (audience === 'business' ? 'Discuss supply' : 'Enquire about a pack') + ' <span>↗</span>';\n      }\n\n      function updateGrid() {\n        let visible = 0;\n        cards.forEach(card => {\n          const show = activeFilter === 'all' || card.dataset.category === activeFilter;\n          card.hidden = !show;\n          if (show) visible++;\n          const priceWrap = card.querySelector('.catalogue-price-wrap');\n          const button = card.querySelector('[data-enquire]');\n          if (audience === 'business') {\n            priceWrap.innerHTML = '<span class=\"catalogue-price-label\">Bulk / recurring supply</span><span class=\"catalogue-price\">On enquiry</span>';\n            button.textContent = 'Request details ↗';\n          } else {\n            const price = card.dataset.price;\n            priceWrap.innerHTML = '<span class=\"catalogue-price-label\">Pack sizes</span><span class=\"catalogue-price\">' + card.dataset.pack.replace('Pack sizes: ', '').replace(/, /g, ' · ') + '</span>';\n            button.textContent = 'Ask about it ↗';\n          }\n        });\n        count.textContent = String(visible).padStart(2, '0') + ' varieties';\n        viewLabel.textContent = audience === 'business' ? 'Bulk and recurring supply · pricing on enquiry' : 'Choose your variety and pack size';\n        const selected = section.querySelector('.catalogue-card.is-featured');\n        const featured = selected && !selected.hidden ? selected : (cards.find(card => !card.hidden) || cards[0]);\n        if (featured) showFieldNotes(featured);\n      }\n      filterButtons.forEach(button => button.addEventListener('click', () => {\n        activeFilter = button.dataset.filter;\n        filterButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));\n        updateGrid();\n      }));\n      audienceButtons.forEach(button => button.addEventListener('click', () => {\n        audience = button.dataset.audience;\n        audienceButtons.forEach(item => item.setAttribute('aria-pressed', String(item === button)));\n        updateGrid();\n      }));\n      function openEnquiry(type, product, pack) {\n        const isBusiness = type === 'business' || audience === 'business';\n        const subject = product\n          ? `MARUT enquiry — ${product}${pack ? ` (${pack})` : ''}`\n          : (isBusiness ? 'MARUT wholesale and supply enquiry' : 'Enquiry for MARUT');\n        const details = [\n          product ? `Hello MARUT, I'm interested in ${product}${pack ? ` in the ${pack} pack` : ''}.` : 'Hello MARUT, I have an enquiry.',\n          isBusiness ? 'I would like to discuss restaurant, wholesale or recurring supply.' : 'Please share availability, pricing and ordering details.',\n          '',\n          'Name:',\n          'Delivery area:',\n          'Quantity / frequency:',\n          '',\n          'Thank you.'\n        ].join('\\\\n');\n        window.location.href = `mailto:info@marut.co.in?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(details)}`;\n      }\n      function orderOnWhatsApp(product, pack) {\n        const message = `Hi MARUT! I'd like to order ${product} microgreens (${pack}). Please confirm the price and availability.`;\n        window.open(`https://wa.me/919880104593?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');\n      }\n      function syncPackButtons(card, pack) {\n        card.dataset.selectedPack = pack;\n        card.querySelectorAll('[data-pack-size]').forEach(button => {\n          const selected = button.dataset.packSize === pack;\n          button.classList.toggle('is-selected', selected);\n          button.setAttribute('aria-pressed', String(selected));\n        });\n        document.querySelectorAll('[data-spotlight-pack]').forEach(button => {\n          const selected = button.dataset.spotlightPack === pack;\n          button.classList.toggle('is-selected', selected);\n          button.setAttribute('aria-pressed', String(selected));\n        });\n      }\n\n      cards.forEach(card => {\n        card.querySelectorAll('[data-pack-size]').forEach(button => {\n          button.addEventListener('click', () => {\n            syncPackButtons(card, button.dataset.packSize);\n            showFieldNotes(card);\n          });\n        });\n        card.querySelector('[data-view-note]')?.addEventListener('click', () => {\n          showFieldNotes(card);\n          document.getElementById('catalogue-spotlight').scrollIntoView({\n            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',\n            block: 'center'\n          });\n        });\n        card.querySelector('.catalogue-image')?.addEventListener('click', () => showFieldNotes(card));\n      });\n      document.getElementById('spotlight-pack-options').addEventListener('click', event => {\n        const button = event.target.closest('[data-spotlight-pack]');\n        if (!button) return;\n        const featured = section.querySelector('.catalogue-card.is-featured') || cards[0];\n        syncPackButtons(featured, button.dataset.spotlightPack);\n      });\n      section.querySelectorAll('[data-open-enquiry]').forEach(link => link.addEventListener('click', e => { e.preventDefault(); openEnquiry(link.dataset.openEnquiry); }));\n      section.querySelectorAll('[data-enquire]').forEach(button => button.addEventListener('click', () => {\n        const product = button.dataset.enquire;\n        const card = cards.find(item => item.dataset.product === product) || section.querySelector('.catalogue-card.is-featured') || cards[0];\n        const pack = card?.dataset.selectedPack || '50 g';\n        openEnquiry(audience, product, pack);\n      }));\n      section.querySelectorAll('[data-whatsapp-order]').forEach(button => button.addEventListener('click', () => {\n        const product = button.dataset.whatsappOrder;\n        const card = cards.find(item => item.dataset.product === product) || section.querySelector('.catalogue-card.is-featured') || cards[0];\n        const pack = card?.dataset.selectedPack || '50 g';\n        orderOnWhatsApp(product, pack);\n      }));\n      updateGrid();\n    })();\n  ", "\n    (() => {\n      const root = document.getElementById('catalogue');\n      if (!root || root.dataset.parallaxReady === 'true') return;\n      root.dataset.parallaxReady = 'true';\n      const feature = root.querySelector('#catalogue-spotlight');\n      const visual = root.querySelector('.spotlight-visual');\n      const image = root.querySelector('#spotlight-image');\n      const stamp = root.querySelector('.spotlight-stamp');\n      const index = root.querySelector('.spotlight-index');\n      const cards = [...root.querySelectorAll('.catalogue-card')];\n      const cardImages = cards.map(card => card.querySelector('.catalogue-image img')).filter(Boolean);\n      if (!feature || !visual || !image) return;\n\n      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');\n      let raf = 0;\n      const clamp = (n, min, max) => Math.max(min, Math.min(max, n));\n\n      function updateParallax() {\n        raf = 0;\n        const viewport = window.innerHeight || 1;\n        const isMobile = window.innerWidth <= 760;\n        if (reduceMotion.matches) {\n          image.style.setProperty('--catalogue-image-shift', '0px');\n          if (stamp) stamp.style.setProperty('--catalogue-stamp-shift', '0px');\n          if (index) index.style.setProperty('--catalogue-index-shift', '0px');\n          cardImages.forEach(img => img.style.setProperty('--catalogue-card-shift', '0px'));\n          cards.forEach(card => {\n            card.style.setProperty('--catalogue-card-x', '0px');\n            card.style.setProperty('--catalogue-card-y', '0px');\n            card.style.setProperty('--catalogue-card-tilt', '0deg');\n            card.style.setProperty('--catalogue-card-scale', '1');\n            card.style.opacity = '1';\n          });\n          return;\n        }\n        const rect = feature.getBoundingClientRect();\n        const progress = clamp((viewport * 0.82 - rect.top) / (rect.height + viewport * 0.35), 0, 1);\n        const centered = (rect.top + rect.height / 2 - viewport / 2) / viewport;\n        image.style.setProperty('--catalogue-image-shift', isMobile ? '0px' : `${Math.round(clamp(centered * -24, -18, 18))}px`);\n        if (stamp) stamp.style.setProperty('--catalogue-stamp-shift', isMobile ? '0px' : `${Math.round(progress * 12)}px`);\n        if (index) index.style.setProperty('--catalogue-index-shift', isMobile ? '0px' : `${Math.round(progress * -8)}px`);\n        cardImages.forEach(img => img.style.setProperty('--catalogue-card-shift', isMobile ? '0px' : `${Math.round(clamp(centered * -24, -18, 18))}px`));\n\n        // Scroll-led card flow: each complete card travels vertically through the\n        // viewport at a different rate from the page itself. Cards rise into view from\n        // below, keep travelling as the user scrolls, then drift upward and out. A tiny\n        // alternating lateral offset/tilt gives the sequence a tactile, deck-like feel.\n        // Since every value is derived from the live viewport position, scrolling back\n        // up reverses the choreography without one-shot entrance animations.\n        cards.forEach((card, i) => {\n          const cardRect = card.getBoundingClientRect();\n          const cardCenter = (cardRect.top + cardRect.height / 2 - viewport / 2) / viewport;\n          const direction = i % 2 === 0 ? 1 : -1;\n          const normalized = clamp(cardCenter, -1.25, 1.25);\n          const y = clamp(normalized * (isMobile ? 58 : 76), isMobile ? -68 : -92, isMobile ? 68 : 92);\n          const x = direction * clamp(Math.abs(normalized) * (isMobile ? 2.5 : 10), 0, isMobile ? 3 : 12);\n          const tilt = direction * clamp(normalized * (isMobile ? 0.35 : 1.7), isMobile ? -0.5 : -2.2, isMobile ? 0.5 : 2.2);\n          const scale = 1 - clamp(Math.abs(normalized) * 0.018, 0, 0.025);\n          card.style.setProperty('--catalogue-card-x', `${Math.round(x * 10) / 10}px`);\n          card.style.setProperty('--catalogue-card-y', `${Math.round(y * 10) / 10}px`);\n          card.style.setProperty('--catalogue-card-tilt', `${Math.round(tilt * 100) / 100}deg`);\n          card.style.setProperty('--catalogue-card-scale', `${Math.round(scale * 1000) / 1000}`);\n          card.style.opacity = '1';\n        });\n\n        // Image movement is slower than the card movement for a subtle layered-depth effect.\n        cardImages.forEach((img, i) => {\n          const cardRect = img.closest('.catalogue-card').getBoundingClientRect();\n          const cardCenter = (cardRect.top + cardRect.height / 2 - viewport / 2) / viewport;\n          const direction = i % 2 === 0 ? -1 : 1;\n          const shift = clamp(cardCenter * -13 * direction, -13, 13);\n          img.style.setProperty('--catalogue-card-shift', `${Math.round(shift)}px`);\n        });\n      }\n\n      function requestUpdate() {\n        if (!raf) raf = window.requestAnimationFrame(updateParallax);\n      }\n\n      window.addEventListener('scroll', requestUpdate, { passive: true });\n      window.addEventListener('resize', requestUpdate, { passive: true });\n      if (reduceMotion.addEventListener) reduceMotion.addEventListener('change', requestUpdate);\n      else if (reduceMotion.addListener) reduceMotion.addListener(requestUpdate);\n\n      // Brief, restrained handoff when the selected product changes.\n      root.querySelectorAll('[data-view-note]').forEach(button => {\n        button.addEventListener('click', () => {\n          feature.classList.add('is-changing');\n          window.setTimeout(() => feature.classList.remove('is-changing'), 240);\n        });\n      });\n\n      requestUpdate();\n    })();\n  "];
+
+function catalogueMain(phoneValue) {
+  const previousCleanup = window.__MARUT_CATALOGUE_CLEANUP__;
+  if (previousCleanup) previousCleanup();
+
+  const section = document.getElementById("catalogue");
+  if (!section) return;
+
+  const grid = section.querySelector(".catalogue-grid");
+  const filterContainer = document.getElementById("catalogue-filters");
+
+  if (!grid || !filterContainer) {
+    console.error("MARUT: Catalogue grid or filters are missing.");
+    return;
+  }
+
+  const products = window.MARUT_PRODUCTS;
+
+  if (!Array.isArray(products)) {
+    console.error("MARUT: Product data is missing or invalid.");
+    return;
+  }
+
+  const activeProducts = products.filter(product =>
+    product &&
+    product.available !== false &&
+    typeof product.name === "string" &&
+    typeof product.id === "string" &&
+    typeof product.category === "string" &&
+    Array.isArray(product.packSizes)
+  );
+
+  if (!activeProducts.length) {
+    console.warn("MARUT: No valid active products found.");
+    return;
+  }
+
+  const PHONE = String(phoneValue || "").replace(/\D/g, "");
+  const cleanups = [];
+  let disposed = false;
+
+  function on(target, event, handler, options) {
+    if (!target) return;
+
+    target.addEventListener(event, handler, options);
+    cleanups.push(() =>
+      target.removeEventListener(event, handler, options)
+    );
+  }
+
+  function cleanup() {
+    if (disposed) return;
+    disposed = true;
+
+    cleanups.forEach(remove => remove());
+
+    if (window.__MARUT_CATALOGUE_CLEANUP__ === cleanup) {
+      delete window.__MARUT_CATALOGUE_CLEANUP__;
+    }
+  }
+
+  window.__MARUT_CATALOGUE_CLEANUP__ = cleanup;
+
+  const escapeHtml = value =>
+    String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    })[char]);
+
+  const packButtons = sizes => sizes.map((size, index) => `
+    <button
+      type="button"
+      class="pack-size-option${index === 0 ? " is-selected" : ""}"
+      data-pack-size="${escapeHtml(size)}"
+      aria-pressed="${index === 0 ? "true" : "false"}">
+      ${escapeHtml(size)}
+    </button>
+  `).join("");
+
+  grid.innerHTML = activeProducts.map((product, index) => `
+    <article
+      class="catalogue-card reveal"
+      data-category="${escapeHtml(product.category)}"
+      data-product="${escapeHtml(product.name)}"
+      data-product-id="${escapeHtml(product.id)}"
+      data-pack="Pack sizes: ${escapeHtml(product.packSizes.join(", "))}"
+      data-selected-pack="${escapeHtml(product.packSizes[0] || "50 g")}"
+      data-price="${escapeHtml(product.price || "On enquiry")}">
+
+      <div class="catalogue-image">
+        <img
+          loading="lazy"
+          src="${escapeHtml(product.cardImage || "")}"
+          alt="${escapeHtml(product.name)} microgreens">
+
+        <span class="catalogue-number">
+          ${String(index + 1).padStart(2, "0")} /
+          ${escapeHtml(product.name.toUpperCase())}
+        </span>
+
+        <span class="catalogue-tag">
+          ${escapeHtml(product.tag || "")}
+        </span>
+      </div>
+
+      <div class="catalogue-card-body">
+        <div class="catalogue-card-top">
+          <h3>${escapeHtml(product.name)}</h3>
+        </div>
+
+        <p class="catalogue-desc">
+          ${escapeHtml(product.description || "")}
+        </p>
+
+        <div class="pack-size-picker"
+             role="group"
+             aria-label="Choose pack size">
+
+          <span class="pack-size-label">PACK SIZE</span>
+
+          <div class="pack-size-options">
+            ${packButtons(product.packSizes)}
+          </div>
+        </div>
+
+        <button
+          class="catalogue-view-note"
+          type="button"
+          data-view-note>
+          Explore field notes <span>↗</span>
+        </button>
+
+        <div class="catalogue-card-foot">
+          <div class="catalogue-price-wrap">
+            <span class="catalogue-price-label">Pack sizes</span>
+            <span class="catalogue-price">
+              ${escapeHtml(product.packSizes.join(" · "))}
+            </span>
+          </div>
+
+          <div class="catalogue-card-actions">
+            <button
+              class="catalogue-enquire"
+              type="button"
+              data-enquire="${escapeHtml(product.name)}">
+              Ask about it ↗
+            </button>
+
+            <button
+              class="catalogue-order-whatsapp"
+              type="button"
+              data-whatsapp-order="${escapeHtml(product.name)}">
+              Order on WhatsApp ↗
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+  `).join("");
+
+  const cards = [...section.querySelectorAll(".catalogue-card")];
+
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  );
+
+  if (
+    reduceMotion.matches ||
+    !("IntersectionObserver" in window)
+  ) {
+    cards.forEach(card => card.classList.add("is-visible"));
+  } else {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.12,
+      rootMargin: "0px 0px -3% 0px"
+    });
+
+    cards.forEach(card => observer.observe(card));
+    cleanups.push(() => observer.disconnect());
+  }
+
+  const categoryOptions = [
+    ...new Map(activeProducts.map(product => [
+      product.category,
+      {
+        value: product.category,
+        label: product.categoryLabel || product.category
+      }
+    ])).values()
+  ];
+
+  filterContainer.innerHTML = `
+    <button
+      class="catalogue-filter"
+      type="button"
+      data-filter="all"
+      aria-pressed="true">
+      All microgreens
+    </button>
+
+    ${categoryOptions.map(category => `
+      <button
+        class="catalogue-filter"
+        type="button"
+        data-filter="${escapeHtml(category.value)}"
+        aria-pressed="false">
+        ${escapeHtml(category.label)}
+      </button>
+    `).join("")}
+  `;
+
+  const filterButtons = [
+    ...section.querySelectorAll("[data-filter]")
+  ];
+
+  const audienceButtons = [
+    ...section.querySelectorAll("[data-audience]")
+  ];
+
+  const count = document.getElementById("catalogue-count");
+  const viewLabel = document.getElementById("catalogue-view-label");
+
+  let activeFilter = "all";
+  let audience = "home";
+
+  if (count) {
+    count.textContent =
+      `${String(activeProducts.length).padStart(2, "0")} varieties`;
+  }
+
+  const spotlight = Object.fromEntries(
+    activeProducts.map((product, index) => [
+      product.name,
+      {
+        image: product.image,
+        alt: `${product.name} microgreens`,
+        category: product.spotlightCategory ||
+          (product.categoryLabel || product.category).toUpperCase(),
+        pack: "AVAILABLE PACK SIZES",
+        index: `${String(index + 1).padStart(2, "0")} / ${
+          String(activeProducts.length).padStart(2, "0")
+        }`,
+        title: `${escapeHtml(product.name)} <em>.</em>`,
+        description:
+          product.spotlightDescription || product.description || "",
+        taste: product.taste || "",
+        uses: product.uses || ""
+      }
+    ])
+  );
+
+  function setActiveCard(card) {
+    cards.forEach(item => {
+      item.classList.toggle(
+        "is-active-card",
+        Boolean(card && item === card)
+      );
+    });
+
+    grid.classList.toggle("has-active-card", Boolean(card));
+  }
+
+  cards.forEach(card => {
+    card.tabIndex = 0;
+
+    on(card, "click", event => {
+      if (event.target.closest(
+        "button, a, input, select, textarea, label"
+      )) return;
+
+      setActiveCard(card);
+    });
+
+    on(card, "keydown", event => {
+      if (event.target !== card) return;
+
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        setActiveCard(card);
+      }
+
+      if (event.key === "Escape") {
+        setActiveCard(null);
+      }
+    });
+  });
+
+  on(document, "click", event => {
+    if (!event.target.closest(".catalogue-card")) {
+      setActiveCard(null);
+    }
+  });
+
+  on(document, "keydown", event => {
+    if (event.key === "Escape") setActiveCard(null);
+  });
+
+  function syncPackButtons(card, pack) {
+    if (!card) return;
+
+    card.dataset.selectedPack = pack;
+
+    card.querySelectorAll("[data-pack-size]").forEach(button => {
+      const selected = button.dataset.packSize === pack;
+
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+
+    document.querySelectorAll("[data-spotlight-pack]").forEach(button => {
+      const selected = button.dataset.spotlightPack === pack;
+
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+  }
+
+  function showFieldNotes(card) {
+    if (!card) return;
+
+    const name = card.dataset.product;
+    const data = spotlight[name];
+
+    if (!data) return;
+
+    syncPackButtons(card, card.dataset.selectedPack || "50 g");
+
+    const product = activeProducts.find(item => item.name === name);
+    const spotlightOptions =
+      document.getElementById("spotlight-pack-options");
+
+    if (product && spotlightOptions) {
+      spotlightOptions.innerHTML = packButtons(product.packSizes)
+        .replace(/data-pack-size=/g, "data-spotlight-pack=");
+
+      const selectedPack =
+        card.dataset.selectedPack || product.packSizes[0];
+
+      spotlightOptions.querySelectorAll(
+        "[data-spotlight-pack]"
+      ).forEach(button => {
+        const selected =
+          button.dataset.spotlightPack === selectedPack;
+
+        button.classList.toggle("is-selected", selected);
+        button.setAttribute("aria-pressed", String(selected));
+      });
+    }
+
+    cards.forEach(item => {
+      item.classList.toggle("is-featured", item === card);
+    });
+
+    const setText = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value ?? "";
+    };
+
+    const image = document.getElementById("spotlight-image");
+
+    if (image && data.image) {
+      image.style.opacity = "0.25";
+
+      window.setTimeout(() => {
+        if (disposed || !image.isConnected) return;
+
+        image.onload = () => {
+          image.style.opacity = "1";
+        };
+
+        image.onerror = () => {
+          image.style.opacity = "1";
+        };
+
+        image.src = data.image;
+        image.alt = data.alt;
+
+        if (image.complete) image.style.opacity = "1";
+      }, 100);
+    }
+
+    setText("spotlight-category", data.category);
+    setText("spotlight-pack", data.pack);
+    setText("spotlight-index", data.index);
+    setText("spotlight-description", data.description);
+    setText("spotlight-taste", data.taste);
+    setText("spotlight-uses", data.uses);
+
+    setText(
+      "spotlight-price",
+      audience === "business"
+        ? "On enquiry"
+        : (card.dataset.price || "On enquiry")
+    );
+
+    setText(
+      "spotlight-price-label",
+      audience === "business"
+        ? "BULK / RECURRING SUPPLY"
+        : "PRICING ON ENQUIRY"
+    );
+
+    const title = document.getElementById("spotlight-title");
+
+    if (title) title.innerHTML = data.title;
+
+    const cta = document.getElementById("spotlight-enquire");
+
+    if (cta) {
+      cta.dataset.enquire = name;
+      cta.innerHTML =
+        (audience === "business"
+          ? "Discuss supply"
+          : "Enquire about a pack") +
+        " <span>↗</span>";
+    }
+  }
+
+  function updateGrid() {
+    let visible = 0;
+
+    cards.forEach(card => {
+      const show =
+        activeFilter === "all" ||
+        card.dataset.category === activeFilter;
+
+      card.hidden = !show;
+      if (show) visible++;
+
+      const priceWrap = card.querySelector(".catalogue-price-wrap");
+      const button = card.querySelector("[data-enquire]");
+
+      if (priceWrap) {
+        if (audience === "business") {
+          priceWrap.innerHTML = `
+            <span class="catalogue-price-label">
+              Bulk / recurring supply
+            </span>
+            <span class="catalogue-price">On enquiry</span>
+          `;
+        } else {
+          priceWrap.innerHTML = `
+            <span class="catalogue-price-label">Pack sizes</span>
+            <span class="catalogue-price">
+              ${escapeHtml(
+                card.dataset.pack
+                  .replace("Pack sizes: ", "")
+                  .replace(/, /g, " · ")
+              )}
+            </span>
+          `;
+        }
+      }
+
+      if (button) {
+        button.textContent = audience === "business"
+          ? "Request details ↗"
+          : "Ask about it ↗";
+      }
+    });
+
+    if (count) {
+      count.textContent =
+        `${String(visible).padStart(2, "0")} varieties`;
+    }
+
+    if (viewLabel) {
+      viewLabel.textContent = audience === "business"
+        ? "Bulk and recurring supply · pricing on enquiry"
+        : "Choose your variety and pack size";
+    }
+
+    const selected = section.querySelector(
+      ".catalogue-card.is-featured"
+    );
+
+    const featured =
+      selected && !selected.hidden
+        ? selected
+        : cards.find(card => !card.hidden);
+
+    if (featured) showFieldNotes(featured);
+  }
+
+  filterButtons.forEach(button => {
+    on(button, "click", () => {
+      activeFilter = button.dataset.filter;
+
+      filterButtons.forEach(item => {
+        item.setAttribute(
+          "aria-pressed",
+          String(item === button)
+        );
+      });
+
+      updateGrid();
+    });
+  });
+
+  audienceButtons.forEach(button => {
+    on(button, "click", () => {
+      audience = button.dataset.audience;
+
+      audienceButtons.forEach(item => {
+        item.setAttribute(
+          "aria-pressed",
+          String(item === button)
+        );
+      });
+
+      updateGrid();
+    });
+  });
+
+  function openEnquiry(type, product, pack) {
+    const isBusiness =
+      type === "business" || audience === "business";
+
+    const subject = product
+      ? `MARUT enquiry — ${product}${pack ? ` (${pack})` : ""}`
+      : isBusiness
+        ? "MARUT wholesale and supply enquiry"
+        : "Enquiry for MARUT";
+
+    const details = [
+      product
+        ? `Hello MARUT, I'm interested in ${product}${
+            pack ? ` in the ${pack} pack` : ""
+          }.`
+        : "Hello MARUT, I have an enquiry.",
+      isBusiness
+        ? "I would like to discuss restaurant, wholesale or recurring supply."
+        : "Please share availability, pricing and ordering details.",
+      "",
+      "Name:",
+      "Delivery area:",
+      "Quantity / frequency:",
+      "",
+      "Thank you."
+    ].join("\n");
+
+    window.location.href =
+      `mailto:info@marut.co.in?subject=${
+        encodeURIComponent(subject)
+      }&body=${encodeURIComponent(details)}`;
+  }
+
+  function orderOnWhatsApp(product, pack) {
+    if (!PHONE) {
+      console.error(
+        "MARUT: VITE_WHATSAPP_NUMBER is not configured."
+      );
+
+      window.alert(
+        "WhatsApp ordering is temporarily unavailable. Please contact MARUT directly."
+      );
+
+      return;
+    }
+
+    const message =
+      `Hi MARUT! I'd like to order ${product} microgreens (${pack}). ` +
+      "Please confirm the price and availability.";
+
+    window.open(
+      `https://wa.me/${PHONE}?text=${encodeURIComponent(message)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+
+  cards.forEach(card => {
+    card.querySelectorAll("[data-pack-size]").forEach(button => {
+      on(button, "click", () => {
+        syncPackButtons(card, button.dataset.packSize);
+        showFieldNotes(card);
+      });
+    });
+
+    const noteButton = card.querySelector("[data-view-note]");
+
+    if (noteButton) {
+      on(noteButton, "click", () => {
+        showFieldNotes(card);
+
+        document.getElementById("catalogue-spotlight")
+          ?.scrollIntoView({
+            behavior: reduceMotion.matches ? "auto" : "smooth",
+            block: "center"
+          });
+      });
+    }
+
+    const cardImage = card.querySelector(".catalogue-image");
+
+    if (cardImage) {
+      on(cardImage, "click", () => showFieldNotes(card));
+    }
+  });
+
+  const spotlightOptions =
+    document.getElementById("spotlight-pack-options");
+
+  on(spotlightOptions, "click", event => {
+    const button = event.target.closest("[data-spotlight-pack]");
+    if (!button) return;
+
+    const featured =
+      section.querySelector(".catalogue-card.is-featured") ||
+      cards[0];
+
+    if (featured) {
+      syncPackButtons(featured, button.dataset.spotlightPack);
+    }
+  });
+
+  section.querySelectorAll("[data-open-enquiry]").forEach(link => {
+    on(link, "click", event => {
+      event.preventDefault();
+      openEnquiry(link.dataset.openEnquiry);
+    });
+  });
+
+  section.querySelectorAll("[data-enquire]").forEach(button => {
+    on(button, "click", () => {
+      const product = button.dataset.enquire;
+
+      const card = cards.find(
+        item => item.dataset.product === product
+      );
+
+      const pack = card?.dataset.selectedPack || "50 g";
+
+      openEnquiry(audience, product, pack);
+    });
+  });
+
+  section.querySelectorAll("[data-whatsapp-order]").forEach(button => {
+    on(button, "click", () => {
+      const product = button.dataset.whatsappOrder;
+
+      const card = cards.find(
+        item => item.dataset.product === product
+      );
+
+      const pack = card?.dataset.selectedPack || "50 g";
+
+      orderOnWhatsApp(product, pack);
+    });
+  });
+
+  updateGrid();
+}
+
+
+function catalogueParallaxMain() {
+  const previousCleanup = window.__MARUT_PARALLAX_CLEANUP__;
+  if (previousCleanup) previousCleanup();
+
+  const root = document.getElementById("catalogue");
+
+  if (!root || root.dataset.parallaxReady === "true") return;
+
+  const feature = root.querySelector("#catalogue-spotlight");
+  const visual = root.querySelector(".spotlight-visual");
+  const image = root.querySelector("#spotlight-image");
+  const stamp = root.querySelector(".spotlight-stamp");
+  const index = root.querySelector(".spotlight-index");
+
+  if (!feature || !visual || !image) return;
+
+  root.dataset.parallaxReady = "true";
+
+  const cards = [...root.querySelectorAll(".catalogue-card")];
+  const reduceMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  );
+
+  let raf = 0;
+  let disposed = false;
+
+  const cleanups = [];
+
+  function on(target, event, handler, options) {
+    target.addEventListener(event, handler, options);
+
+    cleanups.push(() =>
+      target.removeEventListener(event, handler, options)
+    );
+  }
+
+  function cleanup() {
+    if (disposed) return;
+    disposed = true;
+
+    if (raf) window.cancelAnimationFrame(raf);
+
+    cleanups.forEach(remove => remove());
+
+    root.dataset.parallaxReady = "false";
+
+    if (window.__MARUT_PARALLAX_CLEANUP__ === cleanup) {
+      delete window.__MARUT_PARALLAX_CLEANUP__;
+    }
+  }
+
+  window.__MARUT_PARALLAX_CLEANUP__ = cleanup;
+
+  const clamp = (value, min, max) =>
+    Math.max(min, Math.min(max, value));
+
+  function updateParallax() {
+    raf = 0;
+
+    if (disposed || !root.isConnected) return;
+
+    const viewport = window.innerHeight || 1;
+    const isMobile = window.innerWidth <= 760;
+
+    const cardImages = cards
+      .map(card => card.querySelector(".catalogue-image img"))
+      .filter(Boolean);
+
+    if (reduceMotion.matches) {
+      image.style.setProperty("--catalogue-image-shift", "0px");
+
+      if (stamp) {
+        stamp.style.setProperty("--catalogue-stamp-shift", "0px");
+      }
+
+      if (index) {
+        index.style.setProperty("--catalogue-index-shift", "0px");
+      }
+
+      cardImages.forEach(img => {
+        img.style.setProperty("--catalogue-card-shift", "0px");
+      });
+
+      cards.forEach(card => {
+        card.style.setProperty("--catalogue-card-x", "0px");
+        card.style.setProperty("--catalogue-card-y", "0px");
+        card.style.setProperty("--catalogue-card-tilt", "0deg");
+        card.style.setProperty("--catalogue-card-scale", "1");
+        card.style.opacity = "1";
+      });
+
+      return;
+    }
+
+    const rect = feature.getBoundingClientRect();
+
+    const progress = clamp(
+      (viewport * 0.82 - rect.top) /
+        (rect.height + viewport * 0.35),
+      0,
+      1
+    );
+
+    const centered =
+      (rect.top + rect.height / 2 - viewport / 2) / viewport;
+
+    image.style.setProperty(
+      "--catalogue-image-shift",
+      isMobile
+        ? "0px"
+        : `${Math.round(clamp(centered * -24, -18, 18))}px`
+    );
+
+    if (stamp) {
+      stamp.style.setProperty(
+        "--catalogue-stamp-shift",
+        isMobile ? "0px" : `${Math.round(progress * 12)}px`
+      );
+    }
+
+    if (index) {
+      index.style.setProperty(
+        "--catalogue-index-shift",
+        isMobile ? "0px" : `${Math.round(progress * -8)}px`
+      );
+    }
+
+    cards.forEach((card, i) => {
+      const cardRect = card.getBoundingClientRect();
+
+      const cardCenter =
+        (cardRect.top + cardRect.height / 2 - viewport / 2) /
+        viewport;
+
+      const direction = i % 2 === 0 ? 1 : -1;
+      const normalized = clamp(cardCenter, -1.25, 1.25);
+
+      const y = clamp(
+        normalized * (isMobile ? 58 : 76),
+        isMobile ? -68 : -92,
+        isMobile ? 68 : 92
+      );
+
+      const x = direction * clamp(
+        Math.abs(normalized) * (isMobile ? 2.5 : 10),
+        0,
+        isMobile ? 3 : 12
+      );
+
+      const tilt = direction * clamp(
+        normalized * (isMobile ? 0.35 : 1.7),
+        isMobile ? -0.5 : -2.2,
+        isMobile ? 0.5 : 2.2
+      );
+
+      const scale =
+        1 - clamp(Math.abs(normalized) * 0.018, 0, 0.025);
+
+      card.style.setProperty(
+        "--catalogue-card-x",
+        `${Math.round(x * 10) / 10}px`
+      );
+
+      card.style.setProperty(
+        "--catalogue-card-y",
+        `${Math.round(y * 10) / 10}px`
+      );
+
+      card.style.setProperty(
+        "--catalogue-card-tilt",
+        `${Math.round(tilt * 100) / 100}deg`
+      );
+
+      card.style.setProperty(
+        "--catalogue-card-scale",
+        `${Math.round(scale * 1000) / 1000}`
+      );
+
+      card.style.opacity = "1";
+    });
+
+    cardImages.forEach((img, i) => {
+      const card = img.closest(".catalogue-card");
+      if (!card) return;
+
+      const cardRect = card.getBoundingClientRect();
+
+      const cardCenter =
+        (cardRect.top + cardRect.height / 2 - viewport / 2) /
+        viewport;
+
+      const direction = i % 2 === 0 ? -1 : 1;
+      const shift = clamp(cardCenter * -13 * direction, -13, 13);
+
+      img.style.setProperty(
+        "--catalogue-card-shift",
+        `${Math.round(shift)}px`
+      );
+    });
+  }
+
+  function requestUpdate() {
+    if (!raf && !disposed) {
+      raf = window.requestAnimationFrame(updateParallax);
+    }
+  }
+
+  on(window, "scroll", requestUpdate, { passive: true });
+  on(window, "resize", requestUpdate, { passive: true });
+
+  if (reduceMotion.addEventListener) {
+    on(reduceMotion, "change", requestUpdate);
+  } else if (reduceMotion.addListener) {
+    reduceMotion.addListener(requestUpdate);
+
+    cleanups.push(() =>
+      reduceMotion.removeListener(requestUpdate)
+    );
+  }
+
+  root.querySelectorAll("[data-view-note]").forEach(button => {
+    on(button, "click", () => {
+      feature.classList.add("is-changing");
+
+      window.setTimeout(() => {
+        if (!disposed) feature.classList.remove("is-changing");
+      }, 240);
+    });
+  });
+
+  requestUpdate();
+}
+
+
+export const catalogueRuntime = [
+  `(${catalogueMain.toString()})(${
+    JSON.stringify(import.meta.env.VITE_WHATSAPP_NUMBER || "")
+  });`,
+
+  `(${catalogueParallaxMain.toString()})();`
+];
