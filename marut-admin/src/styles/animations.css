@@ -1,0 +1,98 @@
+@keyframes reveal-in {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes login-rise {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float-orb {
+    from {
+        transform: translate3d(0, 0, 0) rotate(0);
+    }
+
+    to {
+        transform: translate3d(18px, -15px, 0) rotate(8deg);
+    }
+}
+
+@keyframes bar-rise {
+    from {
+        transform: scaleY(.15);
+        opacity: .2;
+    }
+
+    to {
+        transform: scaleY(1);
+        opacity: .6;
+    }
+}
+
+@keyframes toast-in {
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: reveal-in .65s var(--ease) forwards;
+}
+
+.reveal:nth-child(2) {
+    animation-delay: .07s;
+}
+
+.reveal:nth-child(3) {
+    animation-delay: .13s;
+}
+
+.reveal:nth-child(4) {
+    animation-delay: .19s;
+}
+
+.button-spinner {
+    display: inline-block;
+    width: 13px;
+    height: 13px;
+    border: 2px solid rgba(27, 33, 20, .3);
+    border-top-color: #1b2114;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+
+@media (prefers-reduced-motion:reduce) {
+
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
