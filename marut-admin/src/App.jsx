@@ -13,6 +13,7 @@ import AppLayout from './components/layout/AppLayout.jsx';
 import { supabase } from './lib/supabase';
 import SetPassword from './pages/SetPassword/SetPassword.jsx';
 import Admins      from './pages/Admins/Admins.jsx'
+import Products    from './pages/Products/Products.jsx';
 function App() {
   const [session    , setSession    ] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -177,10 +178,7 @@ function App() {
         <Route
           path="products"
           element={
-            <Placeholder
-              title="Products"
-              description="Manage the MARUT catalogue, pack sizes and pricing."
-            />
+            <Products/>
           }
         />
 
