@@ -120,7 +120,7 @@ export default function Login({ theme, setTheme, onSignIn }) {
             }
 
             // App.jsx will react to Supabase's authenticated session.
-            onDemoSignIn(data.session);
+            onSignIn(data.session);
         } catch {
             setError('Unable to connect to the authentication service.');
         } finally {

@@ -14,6 +14,7 @@ import {
     Bell,
     Menu,
     LogOut,
+    UserStar,
 } from 'lucide-react';
 
 const navItems = [
@@ -48,7 +49,7 @@ export default function AppLayout({ theme, setTheme, onSignOut, user }) {
     const location = useLocation();
 
     const current = navItems.find((item) => item.to === location.pathname)?.label
-        || (location.pathname === '/settings' ? 'Settings' : 'Overview');
+        || (location.pathname === '/settings' ? 'Settings' : location.pathname === '/admins' ? 'Admin management' : 'Overview');
     const displayName = getDisplayName(user);
     const initial = getInitial(user, displayName);
     const email = user?.email || '';
@@ -109,6 +110,14 @@ export default function AppLayout({ theme, setTheme, onSignOut, user }) {
                     >
                         <Settings className="nav-icon" size={17} strokeWidth={1.65} />
                         <span>Settings</span>
+                    </NavLink>
+                    <NavLink
+                        to="/admins"
+                        title={sidebarCollapsed ? 'Admin Management' : undefined}
+                        className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+                    >
+                        <UserStar className="nav-icon" size={17} strokeWidth={1.65} />
+                        <span>Admin Management</span>
                     </NavLink>
 
                     <div className="profile-card" title={email || displayName}>

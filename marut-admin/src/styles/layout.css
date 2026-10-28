@@ -1479,9 +1479,9 @@ td:last-child {
         height: 52px;
     }
 
-    .sidebar.collapsed .sidebar-brand > span,
+    .sidebar.collapsed .sidebar-brand>span,
     .sidebar.collapsed .workspace-label,
-    .sidebar.collapsed .nav-item > span:not(.nav-count),
+    .sidebar.collapsed .nav-item>span:not(.nav-count),
     .sidebar.collapsed .profile-copy {
         display: none;
     }

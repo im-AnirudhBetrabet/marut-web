@@ -11,7 +11,8 @@ import Login from './pages/Login.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import { supabase } from './lib/supabase';
-
+import SetPassword from './pages/SetPassword/SetPassword.jsx';
+import Admins      from './pages/Admins/Admins.jsx'
 function App() {
   const [session    , setSession    ] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -130,8 +131,18 @@ function App() {
     return <Navigate to="/" replace />;
   }
 
+  const isPublicRoute = location.pathname === '/' || location.pathname === '/set-password';
+
+  if (!authenticated && !isPublicRoute) {
+    return <Navigate to="/" replace />;
+  }
+
   return (
     <Routes>
+      <Route
+        path="/set-password"
+        element={<SetPassword />}
+      />
       <Route
         path="/"
         element={
@@ -212,6 +223,7 @@ function App() {
             />
           }
         />
+        <Route path="admins" element={<Admins />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
