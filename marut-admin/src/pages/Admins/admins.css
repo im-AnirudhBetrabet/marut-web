@@ -472,3 +472,220 @@
          transition: none
      }
  }
+
+
+ /* MARUT theme integration: keep the admin cards, tables and dialogs in sync
+   with the app-wide theme toggle (which sets data-theme on html/body). */
+ .admins-page {
+     --admins-bg: var(--surface, #fffdf8);
+     --admins-bg-subtle: var(--surface-subtle, #f8f7f1);
+     --admins-text: var(--text-primary, var(--text, #27372c));
+     --admins-muted: var(--text-secondary, #778077);
+     --admins-border: var(--border, #e0e2d9);
+     color: var(--admins-text);
+ }
+
+ .admins-stats>div,
+ .admins-panel,
+ .admins-modal,
+ .admins-confirm {
+     background: var(--admins-bg);
+     color: var(--admins-text);
+     border-color: var(--admins-border);
+ }
+
+ .admins-table th,
+ .admins-permission:hover {
+     background: var(--admins-bg-subtle);
+ }
+
+ .admins-table td,
+ .admins-panel-head,
+ .admins-permission,
+ .admins-permission-list {
+     border-color: var(--admins-border);
+ }
+
+ .admins-subtitle,
+ .admins-stats span,
+ .admins-panel-head p,
+ .admins-guide>p,
+ .admins-empty,
+ .admins-uuid,
+ .admins-modal-head p:not(.admins-eyebrow),
+ .admins-permission-head p,
+ .admins-permission small,
+ .admins-confirm p {
+     color: var(--admins-muted);
+ }
+
+ /* The app theme toggle sets both body.dark-mode and data-theme="dark". */
+ html[data-theme="dark"] .admins-page,
+ body[data-theme="dark"] .admins-page,
+ body.dark-mode .admins-page {
+     --admins-bg: #1d2620;
+     --admins-bg-subtle: #27332a;
+     --admins-text: #e8eee4;
+     --admins-muted: #a0ada0;
+     --admins-border: #35443a;
+     --surface: #1d2620;
+     --surface-subtle: #27332a;
+     --text-primary: #e8eee4;
+     --text-secondary: #a0ada0;
+     --border: #35443a;
+     --input-bg: #202a23;
+     color: var(--admins-text);
+     color-scheme: dark;
+ }
+
+ html[data-theme="dark"] .admins-stats>div,
+ html[data-theme="dark"] .admins-panel,
+ html[data-theme="dark"] .admins-modal,
+ html[data-theme="dark"] .admins-confirm,
+ body[data-theme="dark"] .admins-stats>div,
+ body[data-theme="dark"] .admins-panel,
+ body[data-theme="dark"] .admins-modal,
+ body[data-theme="dark"] .admins-confirm,
+ body.dark-mode .admins-stats>div,
+ body.dark-mode .admins-panel,
+ body.dark-mode .admins-modal,
+ body.dark-mode .admins-confirm {
+     background: #1d2620;
+     color: #e8eee4;
+     border-color: #35443a;
+ }
+
+ html[data-theme="dark"] .admins-table th,
+ body[data-theme="dark"] .admins-table th,
+ body.dark-mode .admins-table th {
+     background: #27332a;
+     color: #b7c4b6;
+ }
+
+ html[data-theme="dark"] .admins-table td,
+ body[data-theme="dark"] .admins-table td,
+ body.dark-mode .admins-table td {
+     color: #e8eee4;
+     border-top-color: #35443a;
+ }
+
+ html[data-theme="dark"] .admins-panel-head,
+ html[data-theme="dark"] .admins-permission,
+ html[data-theme="dark"] .admins-permission-list,
+ body[data-theme="dark"] .admins-panel-head,
+ body[data-theme="dark"] .admins-permission,
+ body[data-theme="dark"] .admins-permission-list,
+ body.dark-mode .admins-panel-head,
+ body.dark-mode .admins-permission,
+ body.dark-mode .admins-permission-list {
+     border-color: #35443a;
+ }
+
+ html[data-theme="dark"] .admins-permission:hover,
+ body[data-theme="dark"] .admins-permission:hover,
+ body.dark-mode .admins-permission:hover {
+     background: #27332a;
+ }
+
+ html[data-theme="dark"] .admins-role,
+ body[data-theme="dark"] .admins-role,
+ body.dark-mode .admins-role {
+     background: #2a302b;
+     color: #c0c9bf;
+ }
+
+ html[data-theme="dark"] .admins-role.owner,
+ body[data-theme="dark"] .admins-role.owner,
+ body.dark-mode .admins-role.owner {
+     background: #304335;
+     color: #d5e5d0;
+ }
+
+ html[data-theme="dark"] .admins-status,
+ body[data-theme="dark"] .admins-status,
+ body.dark-mode .admins-status {
+     color: #e0ad9f;
+ }
+
+ html[data-theme="dark"] .admins-status.active,
+ body[data-theme="dark"] .admins-status.active,
+ body.dark-mode .admins-status.active {
+     color: #b9d0b5;
+ }
+
+ html[data-theme="dark"] .admins-link,
+ body[data-theme="dark"] .admins-link,
+ body.dark-mode .admins-link {
+     color: #b9d0b5;
+ }
+
+ html[data-theme="dark"] .admins-danger-link,
+ body[data-theme="dark"] .admins-danger-link,
+ body.dark-mode .admins-danger-link {
+     color: #e28d7b;
+ }
+
+ html[data-theme="dark"] .admins-notice,
+ body[data-theme="dark"] .admins-notice,
+ body.dark-mode .admins-notice {
+     background: #26362a;
+     border-color: #425846;
+     color: #d5e5d0;
+ }
+
+ html[data-theme="dark"] .admins-alert,
+ body[data-theme="dark"] .admins-alert,
+ body.dark-mode .admins-alert {
+     background: #382723;
+     border-color: #70423a;
+     color: #ffc5b8;
+ }
+
+ html[data-theme="dark"] .admins-input,
+ body[data-theme="dark"] .admins-input,
+ body.dark-mode .admins-input {
+     background: #202a23;
+     color: #e8eee4;
+     border-color: #3b4b40;
+ }
+
+ html[data-theme="dark"] .admins-input::placeholder,
+ body[data-theme="dark"] .admins-input::placeholder,
+ body.dark-mode .admins-input::placeholder {
+     color: #8d9b8e;
+ }
+
+ html[data-theme="dark"] .admins-secondary,
+ body[data-theme="dark"] .admins-secondary,
+ body.dark-mode .admins-secondary {
+     background: #202a23;
+     color: #dce7d9;
+     border-color: #435447;
+ }
+
+ html[data-theme="dark"] .admins-primary,
+ body[data-theme="dark"] .admins-primary,
+ body.dark-mode .admins-primary {
+     background: #b9d0b5;
+     border-color: #b9d0b5;
+     color: #1d3023;
+ }
+
+ html[data-theme="dark"] .admins-primary:hover:not(:disabled),
+ body[data-theme="dark"] .admins-primary:hover:not(:disabled),
+ body.dark-mode .admins-primary:hover:not(:disabled) {
+     background: #c9ddc3;
+ }
+
+ html[data-theme="dark"] .admins-warning,
+ body[data-theme="dark"] .admins-warning,
+ body.dark-mode .admins-warning {
+     background: #46302a;
+     color: #ffc5b8;
+ }
+
+ html[data-theme="dark"] .admins-eyebrow,
+ body[data-theme="dark"] .admins-eyebrow,
+ body.dark-mode .admins-eyebrow {
+     color: #b9d0b5;
+ }
