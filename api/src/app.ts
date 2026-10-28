@@ -4,7 +4,8 @@ import cors from "cors";
 import helmet from "helmet";
 import { authenticateAdmin } from "./middleware/authenticate.js";
 import { requirePermission } from "./middleware/requirePermission.js";
-import authRouter from "./modules/auth/auth.routes.js";
+import authRouter   from "./modules/auth/auth.routes.js";
+import adminsRouter from "./modules/admins/admins.routes.js";
 
 const app = express();
 
@@ -28,16 +29,18 @@ app.get("/health", (_req, res) => {
     service: "marut-api",
   });
 });
-app.use("/api/v1/auth", authRouter);
+
+app.use("/api/v1/auth"  , authRouter  );
+app.use("/api/v1/admins", adminsRouter);
 
 app.get(
   "/api/v1/auth/me",
   authenticateAdmin,
   (req, res) => {
     res.json({
-      userId: req.admin!.userId,
-      email: req.admin!.email,
-      role: req.admin!.role,
+      userId     : req.admin!.userId,
+      email      : req.admin!.email,
+      role       : req.admin!.role,
       permissions: req.admin!.permissions,
     });
   },
