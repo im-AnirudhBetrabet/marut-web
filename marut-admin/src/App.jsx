@@ -15,8 +15,12 @@ import SetPassword  from './pages/SetPassword/SetPassword.jsx';
 import Admins       from './pages/Admins/Admins.jsx'
 import Products     from './pages/Products/Products.jsx';
 import SettingsPage from './pages/Settings/Settings.jsx';
+import Feedback     from './pages/Feedback/Feedback.jsx';
 
 import Customers, { CustomerProfile } from './pages/Customers/Customers.jsx';
+
+
+
 function App() {
   const [session    , setSession    ] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -181,16 +185,8 @@ function App() {
         <Route path="products"      element={<Products/>}         />
         <Route path="customers"     element={<Customers/>}        />
         <Route path="customers/:id" element={<CustomerProfile />} />
-
-        <Route
-          path="feedback"
-          element={
-            <Placeholder
-              title="Feedback"
-              description="Review customer feedback and follow-up items."
-            />
-          }
-        />
+        <Route path="feedback"      element={<Feedback/>}         />
+        <Route path="feedback/:id"  element={<Feedback />}        />
 
         <Route
           path="reports"
