@@ -16,6 +16,7 @@ import Admins       from './pages/Admins/Admins.jsx'
 import Products     from './pages/Products/Products.jsx';
 import SettingsPage from './pages/Settings/Settings.jsx';
 import Feedback     from './pages/Feedback/Feedback.jsx';
+import Orders       from './pages/Orders/Orders.jsx';
 
 import Customers, { CustomerProfile } from './pages/Customers/Customers.jsx';
 
@@ -172,16 +173,7 @@ function App() {
       >
         <Route index element={<Dashboard />} />
 
-        <Route
-          path="orders"
-          element={
-            <Placeholder
-              title="Orders"
-              description="Manual orders, fulfilment and status updates will live here."
-            />
-          }
-        />
-
+        <Route path="orders"        element={<Orders/>}           />
         <Route path="products"      element={<Products/>}         />
         <Route path="customers"     element={<Customers/>}        />
         <Route path="customers/:id" element={<CustomerProfile />} />

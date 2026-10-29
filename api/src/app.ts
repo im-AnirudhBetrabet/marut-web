@@ -10,6 +10,9 @@ import productsRouter        from "./modules/products/products.routes.js";
 import productImagesRouter   from "./modules/products/product-images.routes.js";
 import customersRouter       from "./modules/customers/customers.routes.js";
 import feedbackRouter        from "./modules/feedback/feedback.routes.js";
+import ordersRouter          from "./modules/orders/orders.routes.js"; 
+
+
 const app = express();
 
 app.disable("x-powered-by");
@@ -39,6 +42,10 @@ app.use("/api/v1/products" , productsRouter     );
 app.use("/api/v1/products" , productImagesRouter);
 app.use("/api/v1/customers", customersRouter    );
 app.use("/api/v1/feedback" , feedbackRouter     );
+app.use("/api/v1/orders"   , ordersRouter       );
+
+
+
 app.get(
   "/api/v1/auth/me",
   authenticateAdmin,
