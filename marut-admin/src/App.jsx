@@ -7,13 +7,16 @@ import {
   useLocation,
 } from 'react-router-dom';
 
-import Login from './pages/Login.jsx';
-import Dashboard from './pages/Dashboard.jsx';
-import AppLayout from './components/layout/AppLayout.jsx';
+import Login        from './pages/Login.jsx';
+import Dashboard    from './pages/Dashboard.jsx';
+import AppLayout    from './components/layout/AppLayout.jsx';
 import { supabase } from './lib/supabase';
-import SetPassword from './pages/SetPassword/SetPassword.jsx';
-import Admins      from './pages/Admins/Admins.jsx'
-import Products    from './pages/Products/Products.jsx';
+import SetPassword  from './pages/SetPassword/SetPassword.jsx';
+import Admins       from './pages/Admins/Admins.jsx'
+import Products     from './pages/Products/Products.jsx';
+import SettingsPage from './pages/Settings/Settings.jsx';
+
+import Customers, { CustomerProfile } from './pages/Customers/Customers.jsx';
 function App() {
   const [session    , setSession    ] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -175,22 +178,9 @@ function App() {
           }
         />
 
-        <Route
-          path="products"
-          element={
-            <Products/>
-          }
-        />
-
-        <Route
-          path="customers"
-          element={
-            <Placeholder
-              title="Customers"
-              description="Customer profiles and order history."
-            />
-          }
-        />
+        <Route path="products"      element={<Products/>}         />
+        <Route path="customers"     element={<Customers/>}        />
+        <Route path="customers/:id" element={<CustomerProfile />} />
 
         <Route
           path="feedback"
@@ -212,16 +202,8 @@ function App() {
           }
         />
 
-        <Route
-          path="settings"
-          element={
-            <Placeholder
-              title="Settings"
-              description="Workspace preferences and admin permissions."
-            />
-          }
-        />
-        <Route path="admins" element={<Admins />} />
+        <Route path="settings" element={<SettingsPage/>}/>
+        <Route path="admins"   element={<Admins />     }/>
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
